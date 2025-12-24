@@ -1,0 +1,9 @@
+
+Step 0: Make sure your FBX Scene has all Scale and Rotations applied (we don't apply Location since we want to keep personal Pivot Points of the Meshes and their relative offsets)
+Step 1: In Unreal MenuBar -> File -> Import into Level
+Step 2: Select FBX to import
+Step 3: In Import Settings, in Level Pipeline, check that it says "Create Level Actors" and in the Assets Pipeline check "Bake Pivot Meshes" and uncheck "Build Nanite" or your Mesh will be decimated, the other options are up to you
+Step 4: After importing, select your new Meshes form the Level Outliner (List on the right) and find the button in the Blueprint Menu next to the Mode Selector in the top-left that says "Convert Selection to Blueprint Class"
+Step 5: Use "Harvest Components" and specify the inherited Blueprint Class
+
+Result: A Blueprint with all your selected exported Meshes with individual Pivots while keeping their relative Location
