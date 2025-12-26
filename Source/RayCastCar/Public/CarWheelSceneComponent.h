@@ -6,6 +6,8 @@
 #include "Components/SceneComponent.h"
 #include "CarWheelSceneComponent.generated.h"
 
+class ACarPawn;
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class RAYCASTCAR_API UCarWheelSceneComponent : public USceneComponent
@@ -23,7 +25,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Suspension")
 	float SpringDamping;
 
-	UPROPERTY(VisibleAnywhere, Category = "Steering")
+	UPROPERTY(EditAnywhere, Category = "Steering")
 	bool IsSteering;
 	UPROPERTY(VisibleAnywhere, Category = "Steering")
 	float TireGripFactor;
@@ -32,32 +34,42 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Steering")
 	float TireMass;
 
-	UPROPERTY(VisibleAnywhere, Category = "Drive")
+	UPROPERTY(EditAnywhere, Category = "Drive")
 	bool IsDrive;
-	UPROPERTY(VisibleAnywhere, Category = "Brake")
+	UPROPERTY(EditAnywhere, Category = "Brake")
 	bool IsBrake;
 
-	/*UPROPERTY(VisibleAnywhere, Category = "Meshes")
+	UPROPERTY()
 	TObjectPtr<USceneComponent> MeshHolder;
-
-	UPROPERTY(VisibleAnywhere, Category = "Meshes")
-	TObjectPtr<UStaticMeshComponent> CaliperMesh;*/
-
-	UPROPERTY(VisibleAnywhere, Category = "Meshes")
+	UPROPERTY()
+	TObjectPtr<UStaticMeshComponent> CaliperMesh;
+	UPROPERTY()
 	TObjectPtr<UStaticMeshComponent> WheelMesh;
-	UPROPERTY(VisibleAnywhere, Category = "Meshes")
-	float WheelMeshDiameter;
+	UPROPERTY(EditAnywhere, Category = "WheelMesh")
+	float WheelMeshRadius = 30.0f;
 
-	
-
-
+	// ptr back to the body for physics calculations
+	UPROPERTY(Transient)
+	TObjectPtr<UPrimitiveComponent> BodyMesh;
 
 public:	
 	// Sets default values for this component's properties
 	UCarWheelSceneComponent(const FObjectInitializer& ObjectInitializer);
 
-	TSet<TObjectPtr<UActorComponent>> CreateChildComponents(const FObjectInitializer& ObjectInitializer, UObject* Parent);
+	// this is here bcus creating and attaching subcomponents in the constructor of an actors component (which happens before this component is attached to it's parent) is bad
+	TSet<TObjectPtr<USceneComponent>> CreateChildComponents(const FObjectInitializer& ObjectInitializer, UObject* Parent);
 	void AttachChildComponents();
+
+	void CalculateAndApplyForces(float DeltaTime);
+	
+private:
+	bool LineTraceToGround(FHitResult& OutHit);
+	FVector CalculateSuspensionForce(float LineTraceDistance);
+	FVector CalculateGripForce(float DeltaTime);
+	FVector CalculateAccelerationForce(FVector ImpactNormal);
+	FVector CalculateBrakingForce(float DeltaTime);
+	void MoveAndRotateWheel(float DeltaTime, float SuspensionLength);
+	
 
 protected:
 	// Called when the game starts
@@ -67,6 +79,4 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	// Called when Component gets registered
-	virtual void OnRegister() override;
 };
