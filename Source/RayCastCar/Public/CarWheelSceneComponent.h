@@ -38,6 +38,8 @@ public:
 	bool IsDrive;
 	UPROPERTY(EditAnywhere, Category = "Brake")
 	bool IsBrake;
+	UPROPERTY(EditAnywhere, Category = "Brake")
+	bool IsHandbrake;
 
 	UPROPERTY()
 	TObjectPtr<USceneComponent> MeshHolder;

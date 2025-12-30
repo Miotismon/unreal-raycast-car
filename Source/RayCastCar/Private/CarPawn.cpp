@@ -75,6 +75,18 @@ void ACarPawn::OnBrakeInput(const FInputActionInstance& Instance)
 	return;
 }
 
+void ACarPawn::OnHandbrakeInput(const FInputActionInstance& Instance)
+{
+	if (Instance.GetTriggerEvent() == ETriggerEvent::Completed)
+	{
+		InputHandbrake = 0.0f;
+		return;
+	}
+
+	InputHandbrake = Instance.GetValue().Get<float>();
+	return;
+}
+
 void ACarPawn::OnSteerInput(const FInputActionInstance& Instance)
 {
 	if (Instance.GetTriggerEvent() == ETriggerEvent::Completed)
@@ -149,6 +161,16 @@ void ACarPawn::Tick(float DeltaTime)
 	FRotator NewCameraRotation = FMath::Lerp(SpringArm->GetRelativeRotation(), CameraTargetRotation, CameraLerpAmount);
 	SpringArm->SetRelativeRotation(NewCameraRotation);
 
+
+
+	// Debug Draw Velocity
+	DrawDebugDirectionalArrow(
+		GetWorld(),
+		RootMesh->GetComponentLocation() + FVector(0.0, 0.0, 80.0),
+		RootMesh->GetComponentLocation() + FVector(0.0, 0.0, 80.0) + RootMesh->GetPhysicsLinearVelocity() / 2.0,
+		1.0,
+		FColor::Yellow
+	);
 	// Debug Text
 	if (GEngine)
 	{
@@ -160,11 +182,12 @@ void ACarPawn::Tick(float DeltaTime)
 				TEXT("INPUTS:\n")
 				TEXT("Throttle: %f\n")
 				TEXT("Brake: %f\n")
+				TEXT("Handbrake: %f\n")
 				TEXT("Steering: %f\n")
 				TEXT("STATS:\n")
 				TEXT("Velocity: %s\n")
 				TEXT(""), 
-				InputThrottle, InputBrake, InputSteering, *RootMesh->GetPhysicsLinearVelocity().ToString() )
+				InputThrottle, InputBrake, InputHandbrake, InputSteering, *RootMesh->GetPhysicsLinearVelocity().ToString() )
 		);
 	}
 		
@@ -209,6 +232,9 @@ void ACarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	EIC->BindAction(IA_Brake, ETriggerEvent::Triggered, this, &ACarPawn::OnBrakeInput);
 	EIC->BindAction(IA_Brake, ETriggerEvent::Completed, this, &ACarPawn::OnBrakeInput);
+	
+	EIC->BindAction(IA_Handbrake, ETriggerEvent::Triggered, this, &ACarPawn::OnHandbrakeInput);
+	EIC->BindAction(IA_Handbrake, ETriggerEvent::Completed, this, &ACarPawn::OnHandbrakeInput);
 
 	EIC->BindAction(IA_Steer, ETriggerEvent::Triggered, this, &ACarPawn::OnSteerInput);
 	EIC->BindAction(IA_Steer, ETriggerEvent::Completed, this, &ACarPawn::OnSteerInput);

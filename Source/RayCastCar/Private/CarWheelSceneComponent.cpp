@@ -38,14 +38,14 @@ void UCarWheelSceneComponent::CalculateAndApplyForces(float DeltaTime)
 	FHitResult HitResult;
 	if (LineTraceToGround(HitResult))
 	{
-		FVector TotalForce;
+		FVector TotalForce = FVector(0.0);
 		TotalForce += CalculateSuspensionForce(HitResult.Distance);
 		TotalForce += CalculateGripForce(DeltaTime);
 		if (IsDrive)
 		{
 			TotalForce += CalculateAccelerationForce(HitResult.ImpactNormal);
 		}
-		if (IsBrake)
+		if (IsBrake || IsHandbrake)
 		{
 			TotalForce += CalculateBrakingForce(DeltaTime);
 		}
@@ -131,14 +131,30 @@ FVector UCarWheelSceneComponent::CalculateSuspensionForce(float LineTraceDistanc
 
 FVector UCarWheelSceneComponent::CalculateGripForce(float DeltaTime)
 {
-	//Grip in Wheel Right Direction
+	// Grip in Wheel Right Direction
+	ACarPawn* BasePawn = Cast<ACarPawn>(GetOwner());
+
 	FVector LinearVelocityAtPoint = BodyMesh->GetPhysicsLinearVelocityAtPoint(GetComponentLocation());
 	float ProjectedVelocityRight = LinearVelocityAtPoint.Dot(GetRightVector());
-	FVector GripForceVec = (-ProjectedVelocityRight * TireGripFactor / DeltaTime) * GetRightVector() * TireMass;
+	
+	float GripFactor = FMath::Abs(ProjectedVelocityRight / LinearVelocityAtPoint.Length());
+	float AvailableGrip = BasePawn->GripCurve->GetFloatValue(GripFactor);
+	
+	// Reduce Grip if Handbrake is pressed
+	if (IsHandbrake)
+	{
+		float InputHandbrake = BasePawn->InputHandbrake;
+		if (InputHandbrake > 0.0)
+		{
+			AvailableGrip = 0.1;
+		}
+	}
 
-	//Rolling Friction
+	FVector GripForceVec = (-ProjectedVelocityRight * AvailableGrip / DeltaTime) * GetRightVector() * TireMass;
+
+	// Rolling Friction
 	float ProjectedVelocityForward = LinearVelocityAtPoint.Dot(GetForwardVector());
-	if (FMath::Abs(ProjectedVelocityForward) != 0)
+	if (FMath::Abs(ProjectedVelocityForward) > 0.0)
 	{	
 		float RollingFrictionForce = -1 * RollingFrictionFactor * FMath::Sign(ProjectedVelocityForward);
 		FVector RollingFrictionVec = RollingFrictionForce * GetForwardVector();
@@ -195,28 +211,32 @@ FVector UCarWheelSceneComponent::CalculateBrakingForce(float DeltaTime)
 	ACarPawn* BasePawn = Cast<ACarPawn>(GetOwner());
 	float BrakingStrength = BasePawn->BrakingStrength;
 	float InputBrake = BasePawn->InputBrake;
+	float InputHandbrake = BasePawn->InputHandbrake;
 
 
 	FVector LinearVelocityAtPoint = BodyMesh->GetPhysicsLinearVelocityAtPoint(GetComponentLocation());
 	float ProjectedVelocityForward = LinearVelocityAtPoint.Dot(GetForwardVector());
 
-	//float BrakingForce = -1 * FMath::Sign(ProjectedVelocityForward) * BrakingStrength * InputBrake;
-	//constexpr float StopSpeedEpsilon = 5.f; // cm/s
-	//if (FMath::Abs(ProjectedVelocityForward) < StopSpeedEpsilon)
-	//{
-	//	return FVector(0.0); // do not apply braking
-	//}
-	//FVector BrakingForceVec = BrakingForce * GetForwardVector();
-
 	// Compute desired change in velocity
-	float DesiredDeltaV = -FMath::Sign(ProjectedVelocityForward) * BrakingStrength * InputBrake * DeltaTime;
+	float DesiredDeltaV = 0.0;
+	if (IsBrake)
+	{
+		DesiredDeltaV += -FMath::Sign(ProjectedVelocityForward) * BrakingStrength * InputBrake * DeltaTime;
+	}
+
+	if (IsHandbrake)
+	{
+		DesiredDeltaV += -FMath::Sign(ProjectedVelocityForward) * BrakingStrength * InputHandbrake * DeltaTime;
+	}
 
 	// Clamp DeltaV so we don't reverse
 	DesiredDeltaV = FMath::Clamp(DesiredDeltaV, -FMath::Abs(ProjectedVelocityForward), FMath::Abs(ProjectedVelocityForward));
 
 	// Convert DeltaV to force: F = DeltaV / DeltaT * Mass
 	float BrakingForce = (DesiredDeltaV / DeltaTime) * TireMass;
-	FVector BrakingForceVec = BrakingForce * GetForwardVector();
+
+	// make the Force based on the cars forward direction, cus braking with the wheels turned forces the car in to turn in the opposite direction.
+	FVector BrakingForceVec = BrakingForce * BodyMesh->GetForwardVector();
 
 
 	// Debug draw
@@ -229,15 +249,18 @@ FVector UCarWheelSceneComponent::CalculateBrakingForce(float DeltaTime)
 	);
 
 
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 
-			0.0f, 
-			FColor::Yellow, 
+	/*if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1,
+			0.0f,
+			FColor::Yellow,
 			FString::Printf(
 				TEXT("InputBrake in Wheel: %f\n")
 				TEXT("BrakingForceVec: %s"),
 				InputBrake, *BrakingForceVec.ToString())
 		);
+	}*/
+		
 
 
 	return BrakingForceVec;

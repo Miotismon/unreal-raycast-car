@@ -58,6 +58,9 @@ public:
 	float RollingFrictionFactor;
 	UPROPERTY(EditAnywhere, Category = "Steering")
 	float TireMass;
+	UPROPERTY(EditAnywhere, Category = "Steering")
+	TObjectPtr<UCurveFloat> GripCurve;
+
 
 	UPROPERTY(EditAnywhere, Category = "Drive")
 	float TopSpeed;
@@ -81,6 +84,8 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	float InputBrake;
 	UPROPERTY(VisibleAnywhere, Category = "Input")
+	float InputHandbrake;
+	UPROPERTY(VisibleAnywhere, Category = "Input")
 	float InputSteering;
 	UPROPERTY(VisibleAnywhere, Category = "Input")
 	FVector2D InputCamera;
@@ -90,6 +95,8 @@ public:
 	TObjectPtr<UInputAction> IA_Throttle;
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Brake;
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	TObjectPtr<UInputAction> IA_Handbrake;
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UInputAction> IA_Steer;
 
@@ -105,6 +112,8 @@ public:
 	void OnThrottleInput(const FInputActionInstance& Instance);
 	UFUNCTION()
 	void OnBrakeInput(const FInputActionInstance& Instance);
+	UFUNCTION()
+	void OnHandbrakeInput(const FInputActionInstance& Instance);
 	UFUNCTION()
 	void OnSteerInput(const FInputActionInstance& Instance);
 	UFUNCTION()
