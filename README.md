@@ -5,3 +5,5 @@ Just a Test Project to figure out how to do cars with raycast springs in Unreal 
 I also modeled my own car to use for this in Blender (based on the Mazda RX-7).
 
 <img width="1546" height="807" alt="image" src="https://github.com/user-attachments/assets/0297bc3e-adb5-4e1e-ac66-ba67ca63ec7b" />
+
+<img width="1544" height="807" alt="image" src="https://github.com/user-attachments/assets/20d6fb08-befb-45e5-b2da-16f6b2e9a9aa" />
