@@ -120,8 +120,8 @@ FVector UCarWheelSceneComponent::CalculateSuspensionForce(float LineTraceDistanc
 	// Debug draw
 	DrawDebugDirectionalArrow(
 		GetWorld(),
-		GetComponentLocation(),
-		GetComponentLocation() + SpringForceVec / 100.0,
+		GetComponentTransform().TransformPosition(DebugDrawOffset),
+		GetComponentTransform().TransformPosition(DebugDrawOffset) + SpringForceVec / 100.0,
 		1.0,
 		FColor::Blue
 	);
@@ -164,8 +164,8 @@ FVector UCarWheelSceneComponent::CalculateGripForce(float DeltaTime)
 	// Debug draw
 	DrawDebugDirectionalArrow(
 		GetWorld(),
-		GetComponentLocation(),
-		GetComponentLocation() + GripForceVec / 100.0,
+		GetComponentTransform().TransformPosition(DebugDrawOffset),
+		GetComponentTransform().TransformPosition(DebugDrawOffset) + GripForceVec / 100.0,
 		1.0,
 		FColor::Red
 	);
@@ -197,8 +197,8 @@ FVector UCarWheelSceneComponent::CalculateAccelerationForce(FVector SurfaceNorma
 	// Debug draw
 	DrawDebugDirectionalArrow(
 		GetWorld(),
-		GetComponentLocation(),
-		GetComponentLocation() + AccelForceVecProj / 100.0,
+		GetComponentTransform().TransformPosition(DebugDrawOffset),
+		GetComponentTransform().TransformPosition(DebugDrawOffset) + AccelForceVecProj / 100.0,
 		1.0,
 		FColor::Green
 	);
@@ -242,8 +242,8 @@ FVector UCarWheelSceneComponent::CalculateBrakingForce(float DeltaTime)
 	// Debug draw
 	DrawDebugDirectionalArrow(
 		GetWorld(),
-		GetComponentLocation(),
-		GetComponentLocation() + BrakingForceVec / 100.0,
+		GetComponentTransform().TransformPosition(DebugDrawOffset),
+		GetComponentTransform().TransformPosition(DebugDrawOffset) + BrakingForceVec / 100.0,
 		1.0,
 		FColor::Purple
 	);

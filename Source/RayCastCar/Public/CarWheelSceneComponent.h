@@ -41,6 +41,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Brake")
 	bool IsHandbrake;
 
+	UPROPERTY(EditAnywhere, Category = "Debug")
+	FVector DebugDrawOffset;
+
 	UPROPERTY()
 	TObjectPtr<USceneComponent> MeshHolder;
 	UPROPERTY()
