@@ -1,4 +1,8 @@
+AS SEPERATE STATIC MESHES:
 
+Step -1: In Blender set the Scene -> Unit Scale and to 0.01 and scale the mesh to 100 and apply (Preferred)
+OR
+Step -1: In Blender scale the Mesh to 100, apply scale then scale to 0.01 but don't apply 
 Step 0: Make sure your FBX Scene has all Scale and Rotations applied (we don't apply Location since we want to keep personal Pivot Points of the Meshes and their relative offsets)
 Step 1: In Unreal MenuBar -> File -> Import into Level
 Step 2: Select FBX to import
@@ -7,3 +11,19 @@ Step 4: After importing, select your new Meshes form the Level Outliner (List on
 Step 5: Use "Harvest Components" and specify the inherited Blueprint Class
 
 Result: A Blueprint with all your selected exported Meshes with individual Pivots while keeping their relative Location
+
+
+AS A RIGGED SKELETAL MESH:
+
+Step -1: In Blender set the Scene -> Unit Scale and to 0.01 and scale the mesh to 100 and apply (Preferred)
+OR
+Step -1: In Blender scale the Mesh to 100, apply scale then scale to 0.01 but don't apply 
+Step -0.5: If you have a "Root" bone, name the Armature "Armature" (Preferred) 
+OR 
+Step -0.5: If you don't have a "Root" bone, name the Armature "Root" 
+Step 0: Export as FBX, -Y Forward, Smoothing: Face, "Only Deform Bones", No "Add Leaf Bones", Animations -> Simplify: 0.0 https://youtu.be/IbvUIjHRFEU?si=PYcv1AWXkMA7Hk7U&t=1804
+Step 1: Just import in Unreal in the Content Browser, should work with default settings (I suggest the separate in folders by type setting tho)
+
+Result: SkeletalMesh and Materials
+
+Unreal might add suffixes to bone names on import, hf with that
