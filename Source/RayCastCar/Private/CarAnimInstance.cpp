@@ -3,3 +3,9 @@
 
 #include "CarAnimInstance.h"
 
+void UCarAnimInstance::NativeInitializeAnimation()
+{
+    Super::NativeInitializeAnimation();
+
+    WheelData.SetNum(4); // safe default
+}

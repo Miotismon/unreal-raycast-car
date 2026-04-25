@@ -32,9 +32,6 @@ ACarPawn::ACarPawn(const FObjectInitializer& ObjectInitializer)
         CarWheels[i]->SetupAttachment(RootMesh);
         CarWheels[i]->BodyMesh = RootMesh;
     }
-    
-    PopupLights = ObjectInitializer.CreateDefaultSubobject<UStaticMeshComponent>(this, TEXT("PopupLights"));
-    PopupLights->SetupAttachment(RootMesh);
 
     SpringArm = ObjectInitializer.CreateDefaultSubobject<USpringArmComponent>(this, TEXT("SpringArm"));
     SpringArm->SetupAttachment(RootMesh);
@@ -250,22 +247,27 @@ void ACarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ACarPawn::UpdateAnimWheelData(float DeltaTime)
 {   
-    if (!CarAnimInstance) { return; }
+    if (!CarAnimInstance) { 
+        UE_LOG(LogTemp, Warning, TEXT("CarAnimInstance not found"));
+        return; 
+    }
 
     TArray<FWheelAnimData> NewWheelData;
     NewWheelData.SetNum(CarWheels.Num());
 
     for (int i = 0; i < CarWheels.Num(); ++i)
     {
-        NewWheelData[i].DeltaRotation = CarWheels[i]->GetDeltaRotationDeg(DeltaTime);
+        NewWheelData[i].WheelZOffset = CarWheels[i]->GetWheelZOffset();
+
+        NewWheelData[i].RotationDeg = CarWheels[i]->GetWheelRotationDeg();
         
         if (CarWheels[i]->IsSteering)
         {
-            NewWheelData[i].Steering = InputSteering * MaxSteeringAngle;
+            NewWheelData[i].SteeringDeg = InputSteering * MaxSteeringAngle;
         }
         else
         {
-            NewWheelData[i].Steering = 0.0f;
+            NewWheelData[i].SteeringDeg = 0.0f;
         }
     }
 

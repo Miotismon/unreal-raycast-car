@@ -20,15 +20,13 @@ class RAYCASTCAR_API ACarPawn : public APawn
     GENERATED_BODY()
 
 public:
+    // Apparently, if you add a component from C++ with any of the visible specifiers, like VisibleDefaultsOnly, it will show all of that component’s properties within that actor’s details panel. (https://forums.unrealengine.com/t/blueprint-details-panel-is-showing-all-child-components/780426/7) 
+
     UPROPERTY(EditAnywhere, Category = "MainBody")
     TObjectPtr<USkeletalMeshComponent> RootMesh;
 
     UPROPERTY(VisibleAnywhere, Category = "Wheels")
     TArray<TObjectPtr<UCarWheelSceneComponent>> CarWheels;
-
-    // Apparently, if you add a component from C++ with any of the visible specifiers, like VisibleDefaultsOnly, it will show all of that component’s properties within that actor’s details panel. (https://forums.unrealengine.com/t/blueprint-details-panel-is-showing-all-child-components/780426/7) 
-    UPROPERTY(EditAnywhere, Category = "Lights")
-    TObjectPtr<UStaticMeshComponent> PopupLights;
 
     UPROPERTY(EditAnywhere, Category = "Camera")
     TObjectPtr<USpringArmComponent> SpringArm;

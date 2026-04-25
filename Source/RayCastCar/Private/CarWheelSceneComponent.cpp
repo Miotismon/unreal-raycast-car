@@ -44,18 +44,17 @@ void UCarWheelSceneComponent::CalculateAndApplyForces(float DeltaTime)
         {
             TotalForce += CalculateBrakingForce(DeltaTime);
         }
-        
-
-
 
         BodyMesh->AddForceAtLocation(TotalForce, GetSuspensionStart());
 
-        MoveAndRotateWheel(DeltaTime, HitResult.Distance);
+        UpdateWheelData(DeltaTime, HitResult.Distance);
     }
     else
     {
-        MoveAndRotateWheel(DeltaTime, SuspensionMaxDistance);
+        UpdateWheelData(DeltaTime, SuspensionMaxDistance);
     }
+
+
 
 }
 
@@ -129,6 +128,7 @@ bool UCarWheelSceneComponent::LineTraceToGround(FHitResult& OutHit) const
         Params
     );
     
+
     // Debug draw
     DrawDebugLine(
         GetWorld(),
@@ -149,10 +149,11 @@ FVector UCarWheelSceneComponent::CalculateSuspensionForce(float LineTraceDistanc
     FVector SpringForceVec = SpringForce * GetUpVector();
 
     // Debug draw
+    FVector DebugDrawStart = GetSuspensionStart() + GetComponentRotation().RotateVector(DebugDrawOffset);
     DrawDebugDirectionalArrow(
         GetWorld(),
-        GetComponentTransform().TransformPosition(DebugDrawOffset),
-        GetComponentTransform().TransformPosition(DebugDrawOffset) + SpringForceVec / 100.0,
+        DebugDrawStart,
+        DebugDrawStart + SpringForceVec / 100.0,
         1.0,
         FColor::Blue
     );
@@ -193,10 +194,11 @@ FVector UCarWheelSceneComponent::CalculateGripForce(float DeltaTime) const
     }
 
     // Debug draw
+    FVector DebugDrawStart = GetSuspensionStart() + GetComponentRotation().RotateVector(DebugDrawOffset);
     DrawDebugDirectionalArrow(
         GetWorld(),
-        GetComponentTransform().TransformPosition(DebugDrawOffset),
-        GetComponentTransform().TransformPosition(DebugDrawOffset) + GripForceVec / 100.0,
+        DebugDrawStart,
+        DebugDrawStart + GripForceVec / 100.0,
         1.0,
         FColor::Red
     );
@@ -226,10 +228,11 @@ FVector UCarWheelSceneComponent::CalculateAccelerationForce(FVector SurfaceNorma
     FVector AccelForceVecProj = FVector::VectorPlaneProject(AccelForceVec, SurfaceNormal);
 
     // Debug draw
+    FVector DebugDrawStart = GetSuspensionStart() + GetComponentRotation().RotateVector(DebugDrawOffset);
     DrawDebugDirectionalArrow(
         GetWorld(),
-        GetComponentTransform().TransformPosition(DebugDrawOffset),
-        GetComponentTransform().TransformPosition(DebugDrawOffset) + AccelForceVecProj / 100.0,
+        DebugDrawStart,
+        DebugDrawStart + AccelForceVecProj / 100.0,
         1.0,
         FColor::Green
     );
@@ -271,10 +274,11 @@ FVector UCarWheelSceneComponent::CalculateBrakingForce(float DeltaTime) const
 
 
     // Debug draw
+    FVector DebugDrawStart = GetSuspensionStart() + GetComponentRotation().RotateVector(DebugDrawOffset);
     DrawDebugDirectionalArrow(
         GetWorld(),
-        GetComponentTransform().TransformPosition(DebugDrawOffset),
-        GetComponentTransform().TransformPosition(DebugDrawOffset) + BrakingForceVec / 100.0,
+        DebugDrawStart,
+        DebugDrawStart + BrakingForceVec / 100.0,
         1.0,
         FColor::Purple
     );
@@ -297,30 +301,28 @@ FVector UCarWheelSceneComponent::CalculateBrakingForce(float DeltaTime) const
     return BrakingForceVec;
 }
 
-void UCarWheelSceneComponent::MoveAndRotateWheel(float DeltaTime, float SuspensionLength)
+void UCarWheelSceneComponent::UpdateWheelData(float DeltaTime, float NewSuspensionLength)
 {
-    // Move Mesh to where the floor is or the max length of the suspension
-    float NewRelativeDistance = 0.0f;
-    NewRelativeDistance = SuspensionLength - WheelMeshRadius;
-    //MeshHolder->SetRelativeLocation(FVector(0.0, 0.0, -NewRelativeDistance));
+
+    CurrentSuspensionLength = NewSuspensionLength;
 
 
-    // Rotate Wheel
     FVector LinearVelocityAtPoint = BodyMesh->GetPhysicsLinearVelocityAtPoint(GetRefWheelWorldLocation());
     float ProjectedVelocityForward = LinearVelocityAtPoint.Dot(GetForwardVector()); // this is in cm/s
     float AngularSpeedDeg = FMath::RadiansToDegrees(ProjectedVelocityForward / WheelMeshRadius);
     float DeltaRotationDeg = -AngularSpeedDeg * DeltaTime;
-    FRotator WheelRotation = FRotator(DeltaRotationDeg, 0.0, 0.0);
-    //WheelMesh->AddLocalRotation(WheelRotation);
+    CurrentWheelRotationDeg = FMath::Fmod(CurrentWheelRotationDeg + DeltaRotationDeg, 360.0f);
+
 }
 
-float UCarWheelSceneComponent::GetDeltaRotationDeg(float DeltaTime) const
+float UCarWheelSceneComponent::GetWheelZOffset() const
 {
-    FVector LinearVelocityAtPoint = BodyMesh->GetPhysicsLinearVelocityAtPoint(GetRefWheelWorldLocation());
-    float ProjectedVelocityForward = LinearVelocityAtPoint.Dot(GetForwardVector()); // this is in cm/s
-    float AngularSpeedDeg = FMath::RadiansToDegrees(ProjectedVelocityForward / WheelMeshRadius);
-    float DeltaRotationDeg = -AngularSpeedDeg * DeltaTime;
-    return DeltaRotationDeg;
+    return SuspensionTopOffset - CurrentSuspensionLength + WheelMeshRadius;
+}
+
+float UCarWheelSceneComponent::GetWheelRotationDeg() const
+{
+    return CurrentWheelRotationDeg;
 }
 
 

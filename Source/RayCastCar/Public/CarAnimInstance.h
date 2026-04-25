@@ -12,10 +12,13 @@ struct FWheelAnimData
     GENERATED_BODY()
 
     UPROPERTY(BlueprintReadWrite)
-    float DeltaRotation = 0.f;
+    float WheelZOffset = 0.0f;
 
     UPROPERTY(BlueprintReadWrite)
-    float Steering = 0.f;
+    float RotationDeg = 0.0f;
+
+    UPROPERTY(BlueprintReadWrite)
+    float SteeringDeg = 0.0f;
 };
 
 UCLASS()
@@ -27,4 +30,7 @@ public:
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Vehicle")
     TArray<FWheelAnimData> WheelData;
+
+
+    virtual void NativeInitializeAnimation() override;
 };

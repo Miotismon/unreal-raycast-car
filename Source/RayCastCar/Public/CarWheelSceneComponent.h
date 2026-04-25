@@ -56,12 +56,14 @@ public:
     TObjectPtr<USkeletalMeshComponent> BodyMesh;
 
 private:
-    
 
     // Reference Skeleton Data
     int32 BoneIndex;
     FTransform RefTransformCS;
 
+    // Wheel Data
+    float CurrentSuspensionLength = 0.0f;
+    float CurrentWheelRotationDeg = 0.0f;
 
 public:	
     // Sets default values for this component's properties
@@ -93,12 +95,11 @@ private:
     FVector CalculateGripForce(float DeltaTime) const;
     FVector CalculateAccelerationForce(FVector ImpactNormal) const;
     FVector CalculateBrakingForce(float DeltaTime) const;
-    void MoveAndRotateWheel(float DeltaTime, float SuspensionLength);
+    void UpdateWheelData(float DeltaTime, float NewSuspensionLength);
 
 public:
     // Animation Data
-    float GetDeltaRotationDeg(float DeltaTime) const;
-    
-    
+    float GetWheelZOffset() const;
+    float GetWheelRotationDeg() const;
 
 };
