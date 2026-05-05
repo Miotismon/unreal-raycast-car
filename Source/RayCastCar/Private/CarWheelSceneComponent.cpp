@@ -171,6 +171,7 @@ FVector UCarWheelSceneComponent::CalculateGripForce(float DeltaTime) const
     
     float GripFactor = FMath::Abs(ProjectedVelocityRight / LinearVelocityAtPoint.Length());
     float AvailableGrip = BasePawn->GripCurve->GetFloatValue(GripFactor);
+
     
     // Reduce Grip if Handbrake is pressed
     if (IsHandbrake)

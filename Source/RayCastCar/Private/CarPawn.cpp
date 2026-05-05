@@ -47,70 +47,34 @@ ACarPawn::ACarPawn(const FObjectInitializer& ObjectInitializer)
 
 }
 
-void ACarPawn::OnThrottleInput(const FInputActionInstance& Instance)
+void ACarPawn::OnThrottleInput(float Value)
 {
-    if (Instance.GetTriggerEvent() == ETriggerEvent::Completed)
-    {
-        InputThrottle = 0.0f;
-        return;
-    }
-
-    InputThrottle = Instance.GetValue().Get<float>();
-    return;
+    InputThrottle = Value;
 }
 
-void ACarPawn::OnBrakeInput(const FInputActionInstance& Instance)
+void ACarPawn::OnBrakeInput(float Value)
 {
-    if (Instance.GetTriggerEvent() == ETriggerEvent::Completed)
-    {
-        InputBrake = 0.0f;
-        return;
-    }
-
-    InputBrake = Instance.GetValue().Get<float>();
-    return;
+    InputBrake = Value;
 }
 
-void ACarPawn::OnHandbrakeInput(const FInputActionInstance& Instance)
+void ACarPawn::OnHandbrakeInput(bool bPressed)
 {
-    if (Instance.GetTriggerEvent() == ETriggerEvent::Completed)
-    {
-        InputHandbrake = 0.0f;
-        return;
-    }
-
-    InputHandbrake = Instance.GetValue().Get<float>();
-    return;
+    InputHandbrake = bPressed ? 1.0f : 0.0f;
 }
 
-void ACarPawn::OnSteerInput(const FInputActionInstance& Instance)
+void ACarPawn::OnSteerInput(float Value)
 {
-    if (Instance.GetTriggerEvent() == ETriggerEvent::Completed)
-    {
-        InputSteering = 0.0f;
-        return;
-    }
-
-    InputSteering = Instance.GetValue().Get<float>();
-    return;
+    InputSteering = Value;
 }
 
-void ACarPawn::OnCameraInput(const FInputActionInstance& Instance)
+void ACarPawn::OnCameraInput(FVector2D Value)
 {
-    if (Instance.GetTriggerEvent() == ETriggerEvent::Completed)
-    {
-        InputCamera = FVector2D(0.0);
-        
-    }
-    else
-    {
-        InputCamera = Instance.GetValue().Get<FVector2D>();
-    }
+    InputCamera = Value;
 
-    float CameraTargetPitch = FMath::Lerp(CameraBaseRotation.Pitch, 30.0, InputCamera.Y);
-    float CameraTargetYaw = FMath::Lerp(CameraBaseRotation.Yaw, 180.0, InputCamera.X);
+    float CameraTargetPitch = FMath::Lerp(CameraBaseRotation.Pitch, 30.0f, Value.Y);
+    float CameraTargetYaw = FMath::Lerp(CameraBaseRotation.Yaw, 180.0f, Value.X);
 
-    CameraTargetRotation = FRotator(CameraTargetPitch, CameraTargetYaw, 0.0);
+    CameraTargetRotation = FRotator(CameraTargetPitch, CameraTargetYaw, 0.0f);
 }
 
 
@@ -145,12 +109,15 @@ void ACarPawn::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    // Wheel Calculations
+    // Steering Smoothing
+    InterpolatedSteering = FMath::FInterpTo(InterpolatedSteering, InputSteering, DeltaTime, 5.0f);
+
+    // Wheel Ticks
     for (int i = 0; i < CarWheels.Num(); ++i)
     {
         if (CarWheels[i]->IsSteering)
         {
-            CarWheels[i]->SetRelativeRotation(FRotator(0.0, InputSteering * MaxSteeringAngle, 0.0));
+            CarWheels[i]->SetRelativeRotation(FRotator(0.0, InterpolatedSteering * MaxSteeringAngle, 0.0));
         }
 
         CarWheels[i]->CalculateAndApplyForces(DeltaTime);
@@ -185,10 +152,11 @@ void ACarPawn::Tick(float DeltaTime)
                 TEXT("Brake: %f\n")
                 TEXT("Handbrake: %f\n")
                 TEXT("Steering: %f\n")
+                TEXT("SmoothedSteering: %f\n")
                 TEXT("STATS:\n")
                 TEXT("Velocity: %s\n")
                 TEXT(""), 
-                InputThrottle, InputBrake, InputHandbrake, InputSteering, *RootMesh->GetPhysicsLinearVelocity().ToString() )
+                InputThrottle, InputBrake, InputHandbrake, InputSteering, InterpolatedSteering, *RootMesh->GetPhysicsLinearVelocity().ToString() )
         );
     }
         
@@ -214,35 +182,35 @@ void ACarPawn::Tick(float DeltaTime)
 //}
 
 // Called to bind functionality to input
-void ACarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-    Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-
-    APlayerController* PlayerController = Cast<APlayerController>(GetController());
-
-    UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
-
-    Subsystem->ClearAllMappings();
-    Subsystem->AddMappingContext(CarMappingContext, 0);
-
-    UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-
-    EIC->BindAction(IA_Throttle, ETriggerEvent::Triggered, this, &ACarPawn::OnThrottleInput);
-    EIC->BindAction(IA_Throttle, ETriggerEvent::Completed, this, &ACarPawn::OnThrottleInput);
-
-    EIC->BindAction(IA_Brake, ETriggerEvent::Triggered, this, &ACarPawn::OnBrakeInput);
-    EIC->BindAction(IA_Brake, ETriggerEvent::Completed, this, &ACarPawn::OnBrakeInput);
-    
-    EIC->BindAction(IA_Handbrake, ETriggerEvent::Triggered, this, &ACarPawn::OnHandbrakeInput);
-    EIC->BindAction(IA_Handbrake, ETriggerEvent::Completed, this, &ACarPawn::OnHandbrakeInput);
-
-    EIC->BindAction(IA_Steer, ETriggerEvent::Triggered, this, &ACarPawn::OnSteerInput);
-    EIC->BindAction(IA_Steer, ETriggerEvent::Completed, this, &ACarPawn::OnSteerInput);
-
-    EIC->BindAction(IA_Camera, ETriggerEvent::Triggered, this, &ACarPawn::OnCameraInput);
-    EIC->BindAction(IA_Camera, ETriggerEvent::Completed, this, &ACarPawn::OnCameraInput);
-}
+//void ACarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+//{
+//    Super::SetupPlayerInputComponent(PlayerInputComponent);
+//
+//
+//    APlayerController* PlayerController = Cast<APlayerController>(GetController());
+//
+//    UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+//
+//    Subsystem->ClearAllMappings();
+//    Subsystem->AddMappingContext(CarMappingContext, 0);
+//
+//    UEnhancedInputComponent* EIC = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+//
+//    EIC->BindAction(IA_Throttle, ETriggerEvent::Triggered, this, &ACarPawn::OnThrottleInput);
+//    EIC->BindAction(IA_Throttle, ETriggerEvent::Completed, this, &ACarPawn::OnThrottleInput);
+//
+//    EIC->BindAction(IA_Brake, ETriggerEvent::Triggered, this, &ACarPawn::OnBrakeInput);
+//    EIC->BindAction(IA_Brake, ETriggerEvent::Completed, this, &ACarPawn::OnBrakeInput);
+//    
+//    EIC->BindAction(IA_Handbrake, ETriggerEvent::Triggered, this, &ACarPawn::OnHandbrakeInput);
+//    EIC->BindAction(IA_Handbrake, ETriggerEvent::Completed, this, &ACarPawn::OnHandbrakeInput);
+//
+//    EIC->BindAction(IA_Steer, ETriggerEvent::Triggered, this, &ACarPawn::OnSteerInput);
+//    EIC->BindAction(IA_Steer, ETriggerEvent::Completed, this, &ACarPawn::OnSteerInput);
+//
+//    EIC->BindAction(IA_Camera, ETriggerEvent::Triggered, this, &ACarPawn::OnCameraInput);
+//    EIC->BindAction(IA_Camera, ETriggerEvent::Completed, this, &ACarPawn::OnCameraInput);
+//}
 
 
 void ACarPawn::UpdateAnimWheelData(float DeltaTime)
@@ -263,7 +231,7 @@ void ACarPawn::UpdateAnimWheelData(float DeltaTime)
         
         if (CarWheels[i]->IsSteering)
         {
-            NewWheelData[i].SteeringDeg = InputSteering * MaxSteeringAngle;
+            NewWheelData[i].SteeringDeg = InterpolatedSteering * MaxSteeringAngle;
         }
         else
         {

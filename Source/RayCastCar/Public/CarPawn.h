@@ -22,7 +22,7 @@ class RAYCASTCAR_API ACarPawn : public APawn
 public:
     // Apparently, if you add a component from C++ with any of the visible specifiers, like VisibleDefaultsOnly, it will show all of that component’s properties within that actor’s details panel. (https://forums.unrealengine.com/t/blueprint-details-panel-is-showing-all-child-components/780426/7) 
 
-    UPROPERTY(EditAnywhere, Category = "MainBody")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MainBody")
     TObjectPtr<USkeletalMeshComponent> RootMesh;
 
     UPROPERTY(VisibleAnywhere, Category = "Wheels")
@@ -85,6 +85,8 @@ public:
     UPROPERTY(VisibleAnywhere, Category = "Input")
     float InputSteering;
     UPROPERTY(VisibleAnywhere, Category = "Input")
+    float InterpolatedSteering;
+    UPROPERTY(VisibleAnywhere, Category = "Input")
     FVector2D InputCamera;
     UPROPERTY(EditDefaultsOnly, Category = "Input")
     TObjectPtr<UInputMappingContext> CarMappingContext;
@@ -108,17 +110,20 @@ public:
     // Sets default values for this pawn's properties
     ACarPawn(const FObjectInitializer& ObjectInitializer);
 
-    // Adding the UFUNCTION() macro before the function you want to bind seems to be important, even if it's empty.
-    UFUNCTION()
-    void OnThrottleInput(const FInputActionInstance& Instance);
-    UFUNCTION()
-    void OnBrakeInput(const FInputActionInstance& Instance);
-    UFUNCTION()
-    void OnHandbrakeInput(const FInputActionInstance& Instance);
-    UFUNCTION()
-    void OnSteerInput(const FInputActionInstance& Instance);
-    UFUNCTION()
-    void OnCameraInput(const FInputActionInstance& Instance);
+    UFUNCTION(BlueprintCallable)
+    void OnThrottleInput(float Value);
+
+    UFUNCTION(BlueprintCallable)
+    void OnBrakeInput(float Value);
+
+    UFUNCTION(BlueprintCallable)
+    void OnHandbrakeInput(bool bPressed);
+
+    UFUNCTION(BlueprintCallable)
+    void OnSteerInput(float Value);
+
+    UFUNCTION(BlueprintCallable)
+    void OnCameraInput(FVector2D Value);
 
 protected:
     // Called when the game starts or when spawned
@@ -132,7 +137,7 @@ public:
     //virtual void PossessedBy(AController* NewController) override;
 
     // Called to bind functionality to input
-    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    //virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
     void UpdateAnimWheelData(float DeltaTime);
