@@ -22,7 +22,7 @@ Step -0.5: If you have a "Root" bone, name the Armature "Armature" (Preferred)
 OR 
 Step -0.5: If you don't have a "Root" bone, name the Armature "Root" 
 Step 0: Export as FBX, -Y Forward, Smoothing: Face, "Only Deform Bones", No "Add Leaf Bones", Animations -> Simplify: 0.0 https://youtu.be/IbvUIjHRFEU?si=PYcv1AWXkMA7Hk7U&t=1804
-Step 1: Just import in Unreal in the Content Browser, should work with default settings (I suggest the separate in folders by type setting tho)
+Step 1: Just import in Unreal in the Content Browser, should work with default settings (I suggest the separate in folders by type setting tho), can also rotate to make x forward again
 
 Result: SkeletalMesh and Materials
 
