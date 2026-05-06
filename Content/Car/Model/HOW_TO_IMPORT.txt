@@ -26,4 +26,4 @@ Step 1: Just import in Unreal in the Content Browser, should work with default s
 
 Result: SkeletalMesh and Materials
 
-Unreal might add suffixes to bone names on import, hf with that
+Unreal might add suffixes to bone names on import, you can fix them by going into edit bones mode in the skeletal mesh (not the actual skeleton) and then merging the changes into the skeleton
